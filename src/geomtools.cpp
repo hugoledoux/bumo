@@ -60,18 +60,8 @@ Polyhedron convex_hull(const std::vector<Point3>& lspts) {
   return poly;
 }
 
-K::Iso_cuboid_3 aabb(const std::vector<Point3>& lspts) {
-  return CGAL::bounding_box(lspts.begin(), lspts.end());
-}
 
-std::array<Point3, 8> oobb(const std::vector<Point3>& lspts) {
-  std::array<Point3, 8> obb_points;
-  CGAL::oriented_bounding_box(lspts, obb_points);
-  return obb_points;
-}
-
-double volume_oobb(const std::vector<Point3>& lspts) {
-  auto oobbpts = oobb(lspts);
+double oobb_volume(std::array<Point3, 8> oobbpts) {
   double vol = sqrt(CGAL::squared_distance(oobbpts[0], oobbpts[1]));
   vol *= sqrt(CGAL::squared_distance(oobbpts[1], oobbpts[2]));
   vol *= sqrt(CGAL::squared_distance(oobbpts[3], oobbpts[4]));

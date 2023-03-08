@@ -7,6 +7,7 @@
 #include "json.hpp"
 #include "definitions.h"
 #include "geomtools.h"
+#include "Shell.h"
 
 #include <boost/program_options.hpp>
 
@@ -119,20 +120,18 @@ int main(int argc, const char * argv[]) {
 
 void calculate_metrics(std::vector<Point3>& lspts, const json &j) {
   
-  //--header CSV output
-  std::cout << "id,";
+  //-- header CSV output
+  std::cout << "id[lod],";
   for (auto& metric : metrics) {
     std::cout << metric << ",";
   }
   std::cout << std::endl;
 
-  //-- process each CityObjects
+  //-- process each CityObjects (and each of its geoms)
   for (auto& co : j["CityObjects"].items()) {
-    std::vector<std::vector<int>> trs;
-    std::vector<Point3> shellpts;
-    bool hasgeom = false;
     for (auto& g : co.value()["geometry"]) {
-      hasgeom = true;
+      std::vector<std::vector<int>> trs;
+      // std::vector<Point3> shellpts;
       for (int i = 0; i < g["boundaries"].size(); i++) {
         for (int j = 0; j < g["boundaries"][i].size(); j++) {
           std::vector<std::vector<int>> gb = g["boundaries"][i][j];
@@ -141,51 +140,57 @@ void calculate_metrics(std::vector<Point3>& lspts, const json &j) {
           for (auto& each : tris) {
             trs.push_back(each);
           }
-          //-- save the unique points
-          std::set<size_t> uids;
-          for (auto& ring : gb) {
-            for (auto& pi: ring) {
-              uids.insert(pi);
-            }
-          }
-          for (auto& each : uids) {
-            shellpts.push_back(lspts[each]);
-          }
+          // //-- save the unique points
+          // std::set<size_t> uids;
+          // for (auto& ring : gb) {
+          //   for (auto& pi: ring) {
+          //     uids.insert(pi);
+          //   }
+          // }
+          // for (auto& each : uids) {
+          //   shellpts.push_back(lspts[each]);
+          // }
         }
       }
-    }
-    if (hasgeom) {
-      double area = area_shell(trs, lspts);
-      double volume = volume_shell(trs, lspts);
-      double vol_oobb = volume_oobb(shellpts);
+      if (trs.empty() == false) {
+        std::cout << co.key() << "[" << g["lod"].get<std::string>() << "]" << "," << std::endl;   
+        Shell s = Shell(trs, lspts);
 
-      std::cout << co.key() << ",";   
-      std::cout << std::setprecision(2) << std::fixed;
-      for (auto& metric : metrics) {   
-        if (metric == "volume") {
-          std::cout << volume << ",";
+        double area = area_shell(trs, lspts);
+        double volume = volume_shell(trs, lspts);
 
-        } else if (metric == "area") {
-          std::cout << area << ",";
-        } else if (metric == "roughness") {
-          double mu1 = mu(shellpts, trs, lspts);
-          double roughness = pow(mu1, 3.0) * 48.735 / (volume + pow(area, 1.5));
-          std::cout << roughness << ",";
+        double area1 = s.area();
+        double volume1 = s.volume();
+        
+        if ( CGAL::is_closed(s.get_mesh()) == false ) {
+          std::cout << "area:" << area << " | " << area1 << std::endl;
+          std::cout << "volume:" << volume << " | " << volume1 << std::endl;
         }
 
-      //   // std::cout << (vol / voloobb) << " ";
 
-      //   // std::cout << (3*sqrt(2*3.14159)*vol) / pow(area, 1.5) << " ";
-      //   // std::cout << "roughness: " << roughness << std::endl;
+        // double vol_oobb = volume_oobb(shellpts);
 
-      //   // std::cout << "orientations:" << std::endl;
-      //   // roof_orientation(co.key(), lspts, j);
-            
+        // std::cout << std::setprecision(2) << std::fixed;
+        // for (auto& metric : metrics) {   
+        //   if (metric == "volume") {
+        //     std::cout << volume << ",";
+        //   } else if (metric == "area") {
+        //     std::cout << area << ",";
+        //   } else if (metric == "roughness") {
+        //     double mu1 = mu(shellpts, trs, lspts);
+        //     double roughness = pow(mu1, 3.0) * 48.735 / (volume + pow(area, 1.5));
+        //     std::cout << roughness << ",";
+        //   }
+
+        // // std::cout << (vol / voloobb) << " ";
+              
+        // }
+        // std::cout << std::endl;
       }
-      std::cout << std::endl;
     }
   }
 }
+
 
 //--
 std::vector<Point3> get_coordinates(const json& j, bool translate) {

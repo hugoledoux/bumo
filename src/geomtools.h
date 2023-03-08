@@ -9,7 +9,7 @@ Plane                 get_best_fitted_plane(const std::vector<Point3> &lspts);
 double                mu(std::vector<Point3>& shellpts, std::vector<std::vector<int>>& trs, const std::vector<Point3>& lspts);
 double                area_shell(std::vector<std::vector<int>>& trs, const std::vector<Point3>& lspts);
 double                volume_shell(std::vector<std::vector<int>>& trs, const std::vector<Point3>& lspts);
-double                volume_oobb(const std::vector<Point3>& lspts);
+double                oobb_volume(const std::vector<Point3>& lspts);
 K::Iso_cuboid_3       aabb(const std::vector<Point3>& lspts);
 std::array<Point3, 8> oobb(const std::vector<Point3>& lspts);
 
