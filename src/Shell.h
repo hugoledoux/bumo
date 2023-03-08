@@ -15,6 +15,8 @@ public:
   double                volume();
   double                area();
 
+  double                rectangularity();
+
 private:
   std::vector<Point3>           _lspts;
   std::vector<std::vector<int>> _trs;

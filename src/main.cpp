@@ -162,10 +162,12 @@ void calculate_metrics(std::vector<Point3>& lspts, const json &j) {
         double area1 = s.area();
         double volume1 = s.volume();
         
-        if ( CGAL::is_closed(s.get_mesh()) == false ) {
-          std::cout << "area:" << area << " | " << area1 << std::endl;
-          std::cout << "volume:" << volume << " | " << volume1 << std::endl;
-        }
+        std::cout << std::setprecision(3) << std::fixed;
+        // if ( CGAL::is_closed(s.get_mesh()) == false ) {
+          std::cout << "area: " << area << " | " << area1 << std::endl;
+          std::cout << "volume: " << volume << " | " << volume1 << std::endl;
+          std::cout << "rectangularity: " << s.rectangularity() << std::endl;
+        // }
 
 
         // double vol_oobb = volume_oobb(shellpts);

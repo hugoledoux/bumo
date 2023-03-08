@@ -1,5 +1,6 @@
 
 #include "Shell.h"
+#include "geomtools.h"
 
 
 Shell::Shell(std::vector<std::vector<int>> trs, std::vector<Point3> lspts) {
@@ -31,6 +32,13 @@ Shell::get_aabb() {
   return CGAL::bounding_box(_lspts.begin(), _lspts.end());
 }
 
+
+double
+Shell::rectangularity() {
+  auto o = this->get_oobb();
+  double voloobb = oobb_volume(o);
+  return (this->volume() / voloobb);
+}
 
 Mesh 
 Shell::get_mesh() {
