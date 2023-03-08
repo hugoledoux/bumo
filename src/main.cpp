@@ -2,6 +2,8 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <set>
+
 #include "json.hpp"
 #include "definitions.h"
 #include "geomtools.h"
@@ -11,27 +13,43 @@
 using json = nlohmann::json;
 
 void    list_all_vertices(json& j);
-void    save2obj(std::string filename, std::vector<Point3>& lspts, std::vector<std::vector<int>>& trs);
 std::vector<Point3> get_coordinates(const json& j, bool translate = true);
-std::vector<std::vector<int>> triangulate_all(const std::vector<Point3>& lspts, const json &j);
 void    calculate_metrics(std::vector<Point3>& lspts, const json &j);
 
 
+std::set<std::string> metrics = {
+  "area", 
+  "cubeness", 
+  "hemisphericality",
+  "rectangularity",
+  "roughness",
+  "total_vertices",
+  "total_surfaces",
+  "volume", 
+  "volume_aabb", 
+  "volume_oobb" 
+};
 
 int main(int argc, const char * argv[]) {
   std::string ifile; 
+  bool bTranslate = false;
+  bool bAutorepair = false;
+  bool bVerbose = false;
+
   try {
     namespace po = boost::program_options;
     po::options_description pomain("Allowed options");
     pomain.add_options()
       ("help", "View all options")
-      ("no_duplicates", "Do *not* remove the duplicate vertices")
-      ("no_orphans", "Do *not* remove the orphans")
-    ;
+      ("metrics", po::bool_switch(), "List the metrics calculated")
+      ("translate", po::bool_switch(), "Use transform/translate (default=false)")
+      ("autorepair", po::bool_switch(), "Try to autorepair (default=false)")
+      ("verbose", po::bool_switch(), "Verbose output")
+      ;
     po::options_description pohidden("Hidden options");
     pohidden.add_options()
       ("inputfile", po::value<std::string>(&ifile), "Input CityJSON file")
-    ;        
+      ;        
     po::positional_options_description popos;
     popos.add("inputfile", -1);
     
@@ -41,16 +59,40 @@ int main(int argc, const char * argv[]) {
     po::store(po::command_line_parser(argc, argv).
               options(poall).positional(popos).run(), vm);
     po::notify(vm);
-    
+
     if (vm.count("help")) {
-      std::cout << "=== cjcompress help ===" << std::endl;
+      std::cout << "Usage: bumo myfile.city.json" << std::endl;
       std::cout << pomain << std::endl;
-      return 0;
+      return 1;
+    }
+    if (vm.count("license")) {
+      std::cout << "GPLv3" << std::endl;
+      return 1;
+    }
+    if (vm.count("version")) {
+      std::cout << "bumo v0.1" << std::endl;
+      return 1;
+    }
+    if (vm["metrics"].as<bool>() == true) {
+      for (auto& m : metrics) {
+        std::cout << m << std::endl;
+      }
+      return 1;
     }
     if (vm.count("inputfile") == 0) {
       std::cerr << "Error: one input CityJSON file must be specified." << std::endl;
       std::cout << std::endl << pomain << std::endl;
       return 0;  
+    }
+    //-- store params
+    if (vm["translate"].as<bool>() == true) {
+      bTranslate = true;
+    }
+    if (vm["autorepair"].as<bool>() == true) {
+      bAutorepair = true;
+    }
+    if (vm["verbose"].as<bool>() == true) {
+      bVerbose = true;
     }
   } 
   catch(std::exception& e) {
@@ -59,7 +101,8 @@ int main(int argc, const char * argv[]) {
   } 
 
 
-  std::cout << "Processing: " << ifile << std::endl;
+
+  // std::cout << "Processing: " << ifile << std::endl;
 
   std::ifstream input(ifile);
   json j;
@@ -70,14 +113,20 @@ int main(int argc, const char * argv[]) {
 
   calculate_metrics(lspts, j);
 
-  std::vector<std::vector<int>> trs = triangulate_all(lspts, j);
-  save2obj("/Users/hugo/temp/z.obj", lspts, trs);
-
   return 0;
 }
 
 
 void calculate_metrics(std::vector<Point3>& lspts, const json &j) {
+  
+  //--header CSV output
+  std::cout << "id,";
+  for (auto& metric : metrics) {
+    std::cout << metric << ",";
+  }
+  std::cout << std::endl;
+
+  //-- process each CityObjects
   for (auto& co : j["CityObjects"].items()) {
     std::vector<std::vector<int>> trs;
     std::vector<Point3> shellpts;
@@ -106,83 +155,34 @@ void calculate_metrics(std::vector<Point3>& lspts, const json &j) {
       }
     }
     if (hasgeom) {
-      std::cout << co.key() << " ";
-      // std::cout << "==> " << co.key() << std::endl;
-      
-      double vol = volume_shell(trs, lspts);
-      std::cout << std::setprecision(2) << std::fixed << vol << " ";
-      // std::cout << "vol: " << std::setprecision(2) << std::fixed << vol << std::endl;
-
       double area = area_shell(trs, lspts);
-      // std::cout << "area: " << area << std::endl;
+      double volume = volume_shell(trs, lspts);
+      double vol_oobb = volume_oobb(shellpts);
 
-      double voloobb = volume_oobb(shellpts);
-      // std::cout << "vol oobb: " << voloobb << std::endl;
+      std::cout << co.key() << ",";   
+      std::cout << std::setprecision(2) << std::fixed;
+      for (auto& metric : metrics) {   
+        if (metric == "volume") {
+          std::cout << volume << ",";
 
-      std::cout << (vol / voloobb) << " ";
-      // std::cout << "rectangularity: "   << std::setprecision(3) << std::fixed << (vol / voloobb) << std::endl;
-
-      std::cout << (3*sqrt(2*3.14159)*vol) / pow(area, 1.5) << " ";
-      // std::cout << "hemisphericality: " << (3*sqrt(2*3.14159)*vol) / pow(area, 1.5) << std::endl;
-
-      double mu1 = mu(shellpts, trs, lspts);
-      // std::cout << "mu: " << mu1 << std::endl;
-      double roughness = pow(mu1, 3.0) * 48.735 / (vol + pow(area, 1.5));
-      std::cout << roughness << std::endl;
-      // std::cout << "roughness: " << roughness << std::endl;
-
-      // std::cout << "orientations:" << std::endl;
-      // roof_orientation(co.key(), lspts, j);
-          
-      // std::cout << "---" << std::endl;
-    }
-  }
-}
-
-
-void roof_orientation(std::string coid, std::vector<Point3>& lspts, const json &j) {
-  auto co = j["CityObjects"][coid];
-  for (auto& g : co["geometry"]) {
-    if (g["type"] == "Solid") { //-- if MultiSurface then one less for-loop
-      for (int i = 0; i < g["boundaries"].size(); i++) {
-        for (int j = 0; j < g["boundaries"][i].size(); j++) {
-          if (g.contains("semantics")) {
-            int sem_index = g["semantics"]["values"][i][j];
-            if (g["semantics"]["surfaces"][sem_index]["type"].get<std::string>().compare("RoofSurface") == 0) {
-//                std::cout << "RoofSurface: " << g["boundaries"][i][j] << std::endl;
-              std::vector<std::vector<int>> tris = construct_ct_one_face(g["boundaries"][i][j], lspts);
-              if (tris.empty()) {
-                std::cout << "crash" << std::endl;
-                continue;
-              }
-              auto lastr = tris.back();
-              auto n = CGAL::unit_normal(lspts[lastr[0]], lspts[lastr[1]], lspts[lastr[2]]);
-              if ( (n[2] > 0.99) || (n[2] < -0.99) ) {
-                std::cout << "horizontal" << std::endl;
-              } else {
-                double a = atan2(n[1], n[0]);
-                // std::cout << "atan2 " << a << std::endl;
-                if ( (a >= 0.0) && (a < (M_PI/4)) )
-                  std::cout << "EN" << std::endl;
-                else if ( (a >= (M_PI/4)) && (a < (M_PI/2)) )
-                  std::cout << "NE" << std::endl;
-                else if ( (a >= (M_PI/2)) && (a < (M_PI*3/4)) )
-                  std::cout << "NW" << std::endl;
-                else if ( (a >= (M_PI*3/4)) && (a <= (M_PI)) )
-                  std::cout << "WN" << std::endl;
-                else if ( (a < 0.0) && (a >= -(M_PI/4)) )
-                  std::cout << "ES" << std::endl;
-                else if ( (a < -(M_PI/4)) && (a >= -(M_PI/2)) )
-                  std::cout << "SE" << std::endl;
-                else if ( (a < -(M_PI/2)) && (a >= -(M_PI*3/4)) )
-                  std::cout << "SW" << std::endl;
-                else if ( (a < -(M_PI*3/4)) && (a >= -(M_PI)) )
-                  std::cout << "WS" << std::endl;  
-              }
-            }
-          }
+        } else if (metric == "area") {
+          std::cout << area << ",";
+        } else if (metric == "roughness") {
+          double mu1 = mu(shellpts, trs, lspts);
+          double roughness = pow(mu1, 3.0) * 48.735 / (volume + pow(area, 1.5));
+          std::cout << roughness << ",";
         }
+
+      //   // std::cout << (vol / voloobb) << " ";
+
+      //   // std::cout << (3*sqrt(2*3.14159)*vol) / pow(area, 1.5) << " ";
+      //   // std::cout << "roughness: " << roughness << std::endl;
+
+      //   // std::cout << "orientations:" << std::endl;
+      //   // roof_orientation(co.key(), lspts, j);
+            
       }
+      std::cout << std::endl;
     }
   }
 }
@@ -208,44 +208,5 @@ std::vector<Point3> get_coordinates(const json& j, bool translate) {
   }
   return lspts;
 }
-
-
-
-std::vector<std::vector<int>> triangulate_all(const std::vector<Point3>& lspts, const json &j) {
-  std::vector<std::vector<int>> trs;
-  // auto g = j["CityObjects"]["NL.IMBAG.Pand.0503100000018416-0"]["geometry"][0];
-  // auto g = j["CityObjects"]["id-1"]["geometry"][0];
-  for (auto& co : j["CityObjects"].items()) {
-    for (auto& g : co.value()["geometry"]) {
-      // if (g["type"] == "Solid") {
-      if ( (g["type"] == "Solid") && (g["lod"] == "2.2") ) {   //-- LoD2.2 only!!!!!
-        for (int i = 0; i < g["boundaries"].size(); i++) {
-          for (int j = 0; j < g["boundaries"][i].size(); j++) {
-            std::vector<std::vector<int>> gb = g["boundaries"][i][j];
-            // std::cout << "surface: " << g["boundaries"][i][j][0] << std::endl;
-            std::vector<std::vector<int>> tris = construct_ct_one_face(gb, lspts);
-            for (auto& each : tris) {
-              trs.push_back(each);
-            }
-          }
-        }
-      }
-    }
-  }
-  return trs;
-}
-
-
-//-- write the OBJ file
-void save2obj(std::string filename, std::vector<Point3>& lspts, std::vector<std::vector<int>>& trs) {
-  std::ofstream ofile(filename);
-  for (auto& p : lspts)
-    ofile << std::setprecision(5) << std::fixed << "v " << p.x() << " " << p.y() << " " << p.z() << std::endl;
-  for (auto& f : trs) {
-    ofile << "f " << (f[0] + 1) << " " << (f[1] + 1) << " " << (f[2] + 1) << std::endl;
-  }
-  ofile.close();
-}
-
 
 
