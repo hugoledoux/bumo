@@ -10,7 +10,36 @@ Shell::Shell(std::vector<std::vector<int>> trs, std::vector<Point3> lspts) {
   _trs = trs;
   Mesh mesh;
   CGAL::Polygon_mesh_processing::polygon_soup_to_polygon_mesh(_lspts, _trs, mesh);   
-  _mesh = mesh;
+  _mesh_original = mesh;
+  _mesh_wrap = Mesh();
+  _mesh = &_mesh_original;
+}
+
+
+void
+Shell::compute_wrap_mesh() {
+  // const double relative_alpha = 300.0;
+  // const double relative_offset = 1200.0;
+  // auto bbox = this->get_aabb();
+  // const double diag_length = std::sqrt(CGAL::square(bbox.xmax() - bbox.xmin()) +
+  //                                      CGAL::square(bbox.ymax() - bbox.ymin()) +
+  //                                      CGAL::square(bbox.zmax() - bbox.zmin()));
+  // const double alpha = diag_length / relative_alpha;
+  // const double offset = diag_length / relative_offset;
+  // CGAL::alpha_wrap_3(_mesh_original, alpha, offset, _mesh_wrap);
+
+  CGAL::alpha_wrap_3(_mesh_original, 1.0, 0.3, _mesh_wrap); //-- values of Ivan
+}
+
+
+
+void 
+Shell::use_wrap_mesh(bool b) {
+  if (b == true) { 
+    _mesh = &_mesh_wrap;
+  } else {
+    _mesh = &_mesh_original;
+  }
 }
 
 Polyhedron            
@@ -40,24 +69,28 @@ Shell::rectangularity() {
   return (this->volume() / voloobb);
 }
 
-Mesh 
+Mesh* 
 Shell::get_mesh() {
   return _mesh;
 }
 
 bool 
 Shell::is_closed() {
-  return CGAL::is_closed(_mesh);
+  return CGAL::is_closed(*_mesh);
 }
 
 double 
 Shell::volume() {
-  return CGAL::Polygon_mesh_processing::volume(_mesh);
+  return CGAL::Polygon_mesh_processing::volume(*_mesh);
 }
 
 double 
 Shell::area() {
-  return CGAL::Polygon_mesh_processing::area(_mesh);
+  return CGAL::Polygon_mesh_processing::area(*_mesh);
 }
 
 
+void
+Shell::write_off(std::string s) {
+   CGAL::IO::write_polygon_mesh(s, *_mesh, CGAL::parameters::stream_precision(17));
+}

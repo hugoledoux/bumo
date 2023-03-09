@@ -49,7 +49,7 @@ double volume_shell(std::vector<std::vector<int>>& trs, const std::vector<Point3
   for (auto& tr : trs) {
     // Tetrahedron tet(p0, lspts[tr[0]], lspts[tr[1]], lspts[tr[2]]);
     // total += tet.volume();
-    total += CGAL::volume(p0, lspts[tr[0]], lspts[tr[1]], lspts[tr[2]]);
+    total += (long double)(CGAL::volume(p0, lspts[tr[0]], lspts[tr[1]], lspts[tr[2]]));
   }
   return abs(total);
 }

@@ -17,10 +17,13 @@
 #include <CGAL/Triangulation_face_base_with_info_2.h>
 
 #include <CGAL/Surface_mesh.h>
+#include <CGAL/alpha_wrap_3.h>
 #include <CGAL/Polygon_mesh_processing/distance.h>
 #include <CGAL/Polygon_mesh_processing/repair_polygon_soup.h>
 #include <CGAL/Polygon_mesh_processing/orient_polygon_soup.h>
 #include <CGAL/Polygon_mesh_processing/polygon_soup_to_polygon_mesh.h>
+#include <CGAL/Polygon_mesh_processing/polygon_mesh_to_polygon_soup.h>
+#include <CGAL/Polygon_mesh_processing/IO/polygon_mesh_io.h>
 
 //-- for mark_domain()
 struct FaceInfo2

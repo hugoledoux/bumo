@@ -16,7 +16,7 @@ using json = nlohmann::json;
 void    list_all_vertices(json& j);
 std::vector<Point3> get_coordinates(const json& j, bool translate = true);
 void    calculate_metrics(std::vector<Point3>& lspts, const json &j);
-
+void test1();
 
 std::set<std::string> metrics = {
   "area", 
@@ -113,8 +113,24 @@ int main(int argc, const char * argv[]) {
   std::vector<Point3> lspts = get_coordinates(j, false);
 
   calculate_metrics(lspts, j);
+  // test1();
 
   return 0;
+}
+
+
+void test1() {
+  Mesh mesh;
+  // CGAL::IO::read_polygon_mesh("/Users/hugo/temp/NL.IMBAG.Pand.0503100000031316-0.off", mesh);
+  // CGAL::IO::read_polygon_mesh("/Users/hugo/temp/NL.IMBAG.Pand.0503100000032914-0_goodvol.off", mesh);
+  CGAL::IO::read_polygon_mesh("/Users/hugo/temp/NL.IMBAG.Pand.0503100000032914-0_badvol.off", mesh);
+  std::vector<Point3> lspts;
+  std::vector<std::vector<int>> trs;
+  CGAL::Polygon_mesh_processing::polygon_mesh_to_polygon_soup(mesh, lspts, trs); 
+  std::cout << lspts.size() << "  " << trs.size() << std::endl;
+  long double v = volume_shell(trs, lspts);
+  std::cout << "vol: " << v << std::endl;
+
 }
 
 
@@ -169,6 +185,13 @@ void calculate_metrics(std::vector<Point3>& lspts, const json &j) {
           std::cout << "rectangularity: " << s.rectangularity() << std::endl;
         // }
 
+        s.compute_wrap_mesh();
+        s.use_wrap_mesh(true);
+        std::cout << "area wrap: " << s.area()<< std::endl;
+        std::cout << "volume wrap: " << s.volume() << std::endl;
+
+        std::string output_name = "/Users/hugo/temp/" + co.key() + ".off";
+        s.write_off(output_name);
 
         // double vol_oobb = volume_oobb(shellpts);
 
