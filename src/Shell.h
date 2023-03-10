@@ -9,6 +9,8 @@ public:
   void                  compute_wrap_mesh();
   void                  use_wrap_mesh(bool b);
 
+  void                  fill_holes();
+
   Mesh*                 get_mesh();
   Polyhedron            get_convex_hull();
   std::array<Point3, 8> get_oobb();
@@ -18,9 +20,13 @@ public:
   double                volume();
   double                area();
 
+  double                convexity();
+  double                cubeness();
+  double                hemisphericality();
+  double                range();
   double                rectangularity();
 
-  void                   write_off(std::string s);
+  void                  write_off(std::string s);
 
 private:
   std::vector<Point3>           _lspts;

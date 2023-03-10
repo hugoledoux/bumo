@@ -24,6 +24,11 @@
 #include <CGAL/Polygon_mesh_processing/polygon_soup_to_polygon_mesh.h>
 #include <CGAL/Polygon_mesh_processing/polygon_mesh_to_polygon_soup.h>
 #include <CGAL/Polygon_mesh_processing/IO/polygon_mesh_io.h>
+#include <CGAL/Polygon_mesh_processing/triangulate_hole.h>
+#include <CGAL/Polygon_mesh_processing/border.h>
+
+#include <CGAL/Min_sphere_of_points_d_traits_3.h>
+#include <CGAL/Min_sphere_of_spheres_d.h>
 
 //-- for mark_domain()
 struct FaceInfo2
@@ -53,5 +58,11 @@ typedef CGAL::Triangulation_data_structure_2<Vb,Fb>               TDS;
 typedef CGAL::Exact_intersections_tag                             Itag;
 typedef CGAL::Constrained_Delaunay_triangulation_2<K, TDS, Itag>  CT;
 
+typedef boost::graph_traits<Mesh>::vertex_descriptor        vertex_descriptor;
+typedef boost::graph_traits<Mesh>::halfedge_descriptor      halfedge_descriptor;
+typedef boost::graph_traits<Mesh>::face_descriptor          face_descriptor;
+
+typedef CGAL::Min_sphere_of_points_d_traits_3<K,double>     MSPT;
+typedef CGAL::Min_sphere_of_spheres_d<MSPT>                 Min_sphere;
 
 #endif

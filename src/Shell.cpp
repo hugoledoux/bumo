@@ -28,9 +28,32 @@ Shell::compute_wrap_mesh() {
   // const double offset = diag_length / relative_offset;
   // CGAL::alpha_wrap_3(_mesh_original, alpha, offset, _mesh_wrap);
 
-  CGAL::alpha_wrap_3(_mesh_original, 1.0, 0.3, _mesh_wrap); //-- values of Ivan
+  CGAL::alpha_wrap_3(_mesh_original, 1.3, 0.3, _mesh_wrap); //-- values of Ivan
 }
 
+void
+Shell::fill_holes() {
+  std::vector<halfedge_descriptor> border_cycles;
+  //-- collect one halfedge per boundary cycle
+  CGAL::Polygon_mesh_processing::extract_boundary_cycles(*_mesh, std::back_inserter(border_cycles));
+  unsigned int nb_holes = 0;
+  for(halfedge_descriptor h : border_cycles)
+  {
+    std::vector<face_descriptor>  patch_facets;
+    std::vector<vertex_descriptor> patch_vertices;
+    bool success = std::get<0>(
+      CGAL::Polygon_mesh_processing::triangulate_refine_and_fair_hole(*_mesh,
+                                                                      h,
+                                                                      std::back_inserter(patch_facets),
+                                                                      std::back_inserter(patch_vertices)));
+    std::cout << "* Number of facets in constructed patch: " << patch_facets.size() << std::endl;
+    std::cout << "  Number of vertices in constructed patch: " << patch_vertices.size() << std::endl;
+    std::cout << "  Is fairing successful: " << success << std::endl;
+    ++nb_holes;
+  }
+  std::cout << std::endl;
+  std::cout << nb_holes << " holes have been filled" << std::endl;
+}
 
 
 void 
@@ -61,14 +84,6 @@ Shell::get_aabb() {
   return CGAL::bounding_box(_lspts.begin(), _lspts.end());
 }
 
-
-double
-Shell::rectangularity() {
-  auto o = this->get_oobb();
-  double voloobb = oobb_volume(o);
-  return (this->volume() / voloobb);
-}
-
 Mesh* 
 Shell::get_mesh() {
   return _mesh;
@@ -88,6 +103,38 @@ double
 Shell::area() {
   return CGAL::Polygon_mesh_processing::area(*_mesh);
 }
+
+double
+Shell::convexity() {
+  Polyhedron p = this->get_convex_hull();
+  double vol = CGAL::Polygon_mesh_processing::volume(p);
+  return (this->volume() / vol);
+}
+
+double
+Shell::cubeness() {
+  return ( 6 * pow(this->volume(), 2/3) / this->area() );
+}
+
+double
+Shell::hemisphericality() {
+  return ( (3 * sqrt(2 * 3.14159) * this->volume()) / pow(this->area(), 1.5) );
+}
+
+double
+Shell::range() {
+  Min_sphere ms(_lspts.begin(), _lspts.end());
+  std::cout << "radius: " << ms.radius() << std::endl;
+  return 99.0;
+}
+
+double
+Shell::rectangularity() {
+  auto o = this->get_oobb();
+  double voloobb = oobb_volume(o);
+  return (this->volume() / voloobb);
+}
+
 
 
 void

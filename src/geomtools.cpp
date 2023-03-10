@@ -5,21 +5,10 @@
 double mu(std::vector<Point3>& shellpts, std::vector<std::vector<int>>& trs, const std::vector<Point3>& lspts) {
   std::vector<Point3> samples;
   //-- for better sampling not affected by small triangles somewhere
-  // CGAL::Polygon_mesh_processing::sample_triangle_soup(lspts, 
-  //                     trs, std::back_inserter(samples), 
-  //                     CGAL::parameters::do_sample_vertices(false).
-  //                     use_random_uniform_sampling(true)
-  //                     // do_sample_faces(true).
-  //                     // use_monte_carlo_sampling(true).
-  //                     // number_of_points_per_face(2)
-  // );
   CGAL::Polygon_mesh_processing::sample_triangle_soup(lspts, 
                       trs, std::back_inserter(samples), 
                       CGAL::parameters::do_sample_vertices(false).
-                      // use_random_uniform_sampling(true)
-                      do_sample_faces(true).
-                      use_monte_carlo_sampling(true).
-                      number_of_points_per_face(2)
+                      use_random_uniform_sampling(true)
   );
   for (auto& p: shellpts) {
     samples.push_back(p);
@@ -49,7 +38,7 @@ double volume_shell(std::vector<std::vector<int>>& trs, const std::vector<Point3
   for (auto& tr : trs) {
     // Tetrahedron tet(p0, lspts[tr[0]], lspts[tr[1]], lspts[tr[2]]);
     // total += tet.volume();
-    total += (long double)(CGAL::volume(p0, lspts[tr[0]], lspts[tr[1]], lspts[tr[2]]));
+    total += CGAL::volume(p0, lspts[tr[0]], lspts[tr[1]], lspts[tr[2]]);
   }
   return abs(total);
 }
@@ -90,8 +79,24 @@ construct_ct_one_face(const std::vector<std::vector<int>>& lsRings,
 
   //-- stop if the oring is not simple (could crash TODO: understand why)
   if (pgn.is_simple() == false) {
-    return re;
+  //   std::cout << "not simple" << std::endl;
+    std::cout << pgn << std::endl;
   }
+
+  //   // std::vector<Polygon2::Vertex_iterator> toremove;
+  //   // for (auto vi = pgn.vertices_begin(); vi != pgn.vertices_end(); ++vi) {
+  //   //   std::cout << *vi << std::endl;
+  //   //   auto nextvi = vi++;
+  //   //   if ( (nextvi != pgn.vertices_end()) && (CGAL::squared_distance(*vi, *nextvi) < 0.001) ) {
+  //   //     toremove.push_back(vi);
+  //   //   }
+  //   // }
+
+  //   std::cout << pgn << std::endl;
+
+
+  //   return re;
+  // }
   //-- check orientation, this works all must be ccw
   if (pgn.is_counterclockwise_oriented() == false) {
     reversed = true;
@@ -137,6 +142,13 @@ construct_ct_one_face(const std::vector<std::vector<int>>& lsRings,
       }
       re.push_back(t);
     }
+  }
+  if (pgn.is_simple() == false) {
+    std::cout << "trs:";
+    for (auto& t: re)
+      for (auto& i: t)
+        std::cout << i << " ";
+    std::cout << std::endl;
   }
   return re;
 }

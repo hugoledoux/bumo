@@ -128,7 +128,7 @@ void test1() {
   std::vector<std::vector<int>> trs;
   CGAL::Polygon_mesh_processing::polygon_mesh_to_polygon_soup(mesh, lspts, trs); 
   std::cout << lspts.size() << "  " << trs.size() << std::endl;
-  long double v = volume_shell(trs, lspts);
+  double v = volume_shell(trs, lspts);
   std::cout << "vol: " << v << std::endl;
 
 }
@@ -185,12 +185,22 @@ void calculate_metrics(std::vector<Point3>& lspts, const json &j) {
           std::cout << "rectangularity: " << s.rectangularity() << std::endl;
         // }
 
-        s.compute_wrap_mesh();
-        s.use_wrap_mesh(true);
-        std::cout << "area wrap: " << s.area()<< std::endl;
-        std::cout << "volume wrap: " << s.volume() << std::endl;
+        s.range();
+
+        // s.compute_wrap_mesh();
+        // s.use_wrap_mesh(true);
+        // std::cout << "area wrap: " << s.area()<< std::endl;
+        // std::cout << "volume wrap: " << s.volume() << std::endl;
+
+        // s.fill_holes();
+        // std::cout << "is_closed: " << s.is_closed() << std::endl;
+
+        // std::cout << "area: " << s.area()<< std::endl;
+        // std::cout << "volume: " << s.volume() << std::endl;
+        // std::cout << "rectangularity: " << s.rectangularity() << std::endl;
 
         std::string output_name = "/Users/hugo/temp/" + co.key() + ".off";
+        // std::string output_name = "/Users/hugo/temp/" + co.key() + ".wrap.off";
         s.write_off(output_name);
 
         // double vol_oobb = volume_oobb(shellpts);
