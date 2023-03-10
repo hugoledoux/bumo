@@ -13,6 +13,8 @@ double                oobb_volume(std::array<Point3, 8> oobbpts);
 K::Iso_cuboid_3       aabb(const std::vector<Point3>& lspts);
 std::array<Point3, 8> oobb(const std::vector<Point3>& lspts);
 
+double                get_sphere_radius_from_volume(double vol);
+
 void                  mark_domains(CT& ct);
 void                  mark_domains(CT& ct, CT::Face_handle start, int index, std::list<CT::Edge>& border);
 std::vector<std::vector<int>>

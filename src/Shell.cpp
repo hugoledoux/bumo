@@ -104,6 +104,18 @@ Shell::area() {
   return CGAL::Polygon_mesh_processing::area(*_mesh);
 }
 
+Point3
+Shell::centroid() {
+  std::vector<Point3> samples;
+  CGAL::Polygon_mesh_processing::sample_triangle_soup(_lspts, 
+                          _trs, 
+                          std::back_inserter(samples), 
+                          CGAL::parameters::do_sample_vertices(true).
+                          use_random_uniform_sampling(true)
+  );
+  return CGAL::centroid(samples.begin(), samples.end());
+}
+
 double
 Shell::convexity() {
   Polyhedron p = this->get_convex_hull();
@@ -117,13 +129,26 @@ Shell::cubeness() {
 }
 
 double
+Shell::dispersion() {
+  double re = 1 - (this->mu_surface_sphere() / this->mu_surface_centroid());
+  return re;
+}
+
+
+double
+Shell::fractality() {
+  double re = 1 - (std::log(this->volume()) / 1.5 / std::log(this->area()));
+  return re;
+}
+
+double
 Shell::hemisphericality() {
   return ( (3 * sqrt(2 * 3.14159) * this->volume()) / pow(this->area(), 1.5) );
 }
 
 double
 Shell::range() {
-  //-- get minimum circumscribing sphere
+  //-- get smallest enclosing spheres
   Min_sphere ms(_lspts.begin(), _lspts.end());
   double re = pow(3 * this->volume() / (4 * 3.14159), 1.0/3.0) / ms.radius();
   return re;
@@ -136,7 +161,50 @@ Shell::rectangularity() {
   return (this->volume() / voloobb);
 }
 
+double
+Shell::roughness() {
+  return (pow(this->mu_surface_centroid(), 3.0) * 48.735 / (this->volume() + pow(this->area(), 1.5)));
+}
 
+double
+Shell::mu_surface_sphere() {
+  std::vector<Point3> samples;
+  CGAL::Polygon_mesh_processing::sample_triangle_soup(_lspts, 
+                          _trs, 
+                          std::back_inserter(samples), 
+                          CGAL::parameters::do_sample_vertices(true).
+                          use_random_uniform_sampling(true)
+                          );
+  Point3 c = CGAL::centroid(samples.begin(), samples.end());
+  double r = get_sphere_radius_from_volume(this->volume());
+  double distance = 0.0;
+  int total = 0;   
+  for (auto& s : samples) {
+    total += 1;
+    distance += abs(sqrt(CGAL::squared_distance(c, s)) - r);
+  }
+  return (distance / total);
+}
+
+
+double
+Shell::mu_surface_centroid() {
+  std::vector<Point3> samples;
+  CGAL::Polygon_mesh_processing::sample_triangle_soup(_lspts, 
+                          _trs, 
+                          std::back_inserter(samples), 
+                          CGAL::parameters::do_sample_vertices(true).
+                          use_random_uniform_sampling(true)
+                          );
+  Point3 c = CGAL::centroid(samples.begin(), samples.end());
+  double distance = 0.0;
+  int total = 0;     
+  for (auto& s : samples) {
+    total += 1;
+    distance += sqrt(CGAL::squared_distance(c, s));
+  }
+  return (distance / total);
+}
 
 void
 Shell::write_off(std::string s) {

@@ -187,7 +187,6 @@ void calculate_metrics(std::vector<Point3>& lspts, const json &j) {
 
         std::cout << "range: " << s.range() << std::endl;
 
-
         // s.compute_wrap_mesh();
         // s.use_wrap_mesh(true);
         // std::cout << "area wrap: " << s.area()<< std::endl;

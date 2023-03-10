@@ -2,6 +2,11 @@
 #include "geomtools.h"
 
 
+double get_sphere_radius_from_volume(double vol) {
+  return pow(3 * vol / 4 / 3.14159, 1.0/3.0);
+}
+
+
 double mu(std::vector<Point3>& shellpts, std::vector<std::vector<int>>& trs, const std::vector<Point3>& lspts) {
   std::vector<Point3> samples;
   //-- for better sampling not affected by small triangles somewhere
