@@ -185,7 +185,8 @@ void calculate_metrics(std::vector<Point3>& lspts, const json &j) {
           std::cout << "rectangularity: " << s.rectangularity() << std::endl;
         // }
 
-        s.range();
+        std::cout << "range: " << s.range() << std::endl;
+
 
         // s.compute_wrap_mesh();
         // s.use_wrap_mesh(true);
