@@ -113,7 +113,7 @@ Shell::convexity() {
 
 double
 Shell::cubeness() {
-  return ( 6 * pow(this->volume(), 2/3) / this->area() );
+  return ( 6 * pow(this->volume(), 2.0/3.0) / this->area() );
 }
 
 double
@@ -123,9 +123,10 @@ Shell::hemisphericality() {
 
 double
 Shell::range() {
+  //-- get minimum circumscribing sphere
   Min_sphere ms(_lspts.begin(), _lspts.end());
-  std::cout << "radius: " << ms.radius() << std::endl;
-  return 99.0;
+  double re = pow(3 * this->volume() / (4 * 3.14159), 1.0/3.0) / ms.radius();
+  return re;
 }
 
 double
