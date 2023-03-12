@@ -18,19 +18,13 @@ Shell::Shell(std::vector<std::vector<int>> trs, std::vector<Point3> lspts) {
 
 double Shell::distance() {
   // https://github.com/CGAL/cgal/blob/master/Polygon_mesh_processing/test/Polygon_mesh_processing/test_pmp_distance.cpp
-  std::cout << "is triangle mesh: " << CGAL::is_triangle_mesh(*_mesh) << std::endl;
-
-  // TriangleMesh tm1 = (TriangleMesh)(_mesh_original);
-
-  // Mesh::Property_map<boost::graph_traits<Mesh>::vertex_descriptor,Point3> ppp;
-  // boost::graph_traits<TriangleMesh>::vertex_descriptor as key type and Point_3
   std::vector<Point3> pts;
-  pts.push_back(Point3(107.0, 388.0, 15.0));
+  // pts.push_back(Point3(107.0, 388.0, 15.0));
+  pts.push_back(Point3(43.0, 364.0, 16.3));
   pts.push_back(Point3(81.0, 413.0, 17.0));
-  double re = CGAL::Polygon_mesh_processing::max_distance_to_triangle_mesh<CONCURRENCY_TAG>(
+  double re = CGAL::Polygon_mesh_processing::max_distance_to_triangle_mesh<CGAL::Parallel_if_available_tag>(
     pts, 
     _mesh_original);
-    // CGAL::parameters::vertex_point_map(ppp));
   std::cout << "re distance: " << re << std::endl;
   return 77.0;
 

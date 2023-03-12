@@ -44,9 +44,9 @@ struct FaceInfo2
   }
 };  
 
-//-- use for the Concurrency_tag of 
-//-- https://doc.cgal.org/latest/Polygon_mesh_processing/group__PMP__distance__grp.html#gaed9454c6ed046cd4fb7928cf2b5f7c2c
-#define CONCURRENCY_TAG CGAL::Parallel_if_available_tag
+// //-- use for the Concurrency_tag of 
+// //-- https://doc.cgal.org/latest/Polygon_mesh_processing/group__PMP__distance__grp.html#gaed9454c6ed046cd4fb7928cf2b5f7c2c
+// #define CONCURRENCY_TAG CGAL::Parallel_if_available_tag
 
 typedef CGAL::Exact_predicates_inexact_constructions_kernel K;
 
