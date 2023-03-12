@@ -30,6 +30,8 @@ public:
   double                roughness();
   double                volume();
 
+  double                distance();
+
   void                  write_off(std::string s);
 
 private:

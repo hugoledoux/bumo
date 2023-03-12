@@ -177,6 +177,8 @@ void calculate_metrics(std::vector<Point3>& lspts, const json &j) {
 
         double area1 = s.area();
         double volume1 = s.volume();
+
+        double d = s.distance();
         
         std::cout << std::setprecision(3) << std::fixed;
         // if ( CGAL::is_closed(s.get_mesh()) == false ) {
