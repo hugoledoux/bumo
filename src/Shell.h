@@ -25,9 +25,9 @@ public:
   double                convexity();
   double                cubeness();
   double                cuboidindex();
-  // double                depth();
+  double                depth();
   double                dispersion();
-  // double                exchange();
+  // double                exchange();   TODO? NEEDS Nef for intersection of 3D mesh
   double                fractality();
   double                girth();
   double                hemisphericality();
@@ -56,6 +56,7 @@ private:
 
   double                avg_dist_samples_surface_centroid();
   double                avg_dist_samples_volume_centroid();
+  double                avg_dist_samples_volume_surface();
   double                avg_sq_dist_samples_volume_centroid();
   double                largest_sphere_inside_mesh();
   double                avg_dist_samples_surface_radius_sphere();

@@ -188,8 +188,8 @@ void calculate_metrics(std::vector<Point3>& lspts, const json &j) {
         // double proximity = s.proximity();
         // std::cout << "proximity: " << proximity << std::endl;
 
-        double cuboidindex = s.cuboidindex();
-        std::cout << "cuboidindex: " << cuboidindex << std::endl;
+        double depth = s.depth();
+        std::cout << "depth: " << depth << std::endl;
         
         // if ( CGAL::is_closed(s.get_mesh()) == false ) {
           std::cout << "area: " << area << " | " << area1 << std::endl;
