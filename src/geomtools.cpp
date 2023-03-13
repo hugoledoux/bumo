@@ -54,6 +54,15 @@ Polyhedron convex_hull(const std::vector<Point3>& lspts) {
   return poly;
 }
 
+double oobb_area(std::array<Point3, 8> oobbpts) {
+  double a = sqrt(CGAL::squared_distance(oobbpts[0], oobbpts[1]));
+  double b = sqrt(CGAL::squared_distance(oobbpts[1], oobbpts[2]));
+  double c = sqrt(CGAL::squared_distance(oobbpts[3], oobbpts[4]));
+  double area = 2 * a * b;
+  area += 2 * a * c;
+  area += 2 * b * c;
+  return area;
+}
 
 double oobb_volume(std::array<Point3, 8> oobbpts) {
   double vol = sqrt(CGAL::squared_distance(oobbpts[0], oobbpts[1]));

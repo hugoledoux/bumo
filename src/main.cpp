@@ -182,8 +182,14 @@ void calculate_metrics(std::vector<Point3>& lspts, const json &j) {
         // double d = s.largest_sphere_inside_mesh();
         // std::cout << "largest_sphere_inside_mesh: " << d << std::endl;
 
-        double cohesion = s.cohesion();
-        std::cout << "cohesion: " << cohesion << std::endl;
+        // double cohesion = s.cohesion();
+        // std::cout << "cohesion: " << cohesion << std::endl;
+
+        // double proximity = s.proximity();
+        // std::cout << "proximity: " << proximity << std::endl;
+
+        double cuboidindex = s.cuboidindex();
+        std::cout << "cuboidindex: " << cuboidindex << std::endl;
         
         // if ( CGAL::is_closed(s.get_mesh()) == false ) {
           std::cout << "area: " << area << " | " << area1 << std::endl;

@@ -20,15 +20,22 @@ public:
 
   double                area();
   Point3                centroid();
+  double                circumference();
   double                cohesion();
   double                convexity();
   double                cubeness();
+  double                cuboidindex();
+  // double                depth();
   double                dispersion();
+  // double                exchange();
   double                fractality();
+  double                girth();
   double                hemisphericality();
+  double                proximity();
   double                range();
   double                rectangularity();
   double                roughness();
+  double                spin();
   double                volume();
 
 
@@ -47,7 +54,9 @@ private:
   std::vector<Point3>           _samples_surface;
   std::vector<Point3>           _samples_volume;
 
+  double                avg_dist_samples_surface_centroid();
+  double                avg_dist_samples_volume_centroid();
+  double                avg_sq_dist_samples_volume_centroid();
   double                largest_sphere_inside_mesh();
-  double                mu_surface_centroid();
-  double                mu_surface_sphere();
+  double                avg_dist_samples_surface_radius_sphere();
 };

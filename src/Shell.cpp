@@ -75,7 +75,7 @@ Shell::Shell(std::vector<std::vector<int>> trs, std::vector<Point3> lspts) {
 
 
 
-
+//-- returns the radius
 double Shell::largest_sphere_inside_mesh() {
   // https://github.com/CGAL/cgal/blob/master/Polygon_mesh_processing/test/Polygon_mesh_processing/test_pmp_distance.cpp
   double re = CGAL::Polygon_mesh_processing::max_distance_to_triangle_mesh<CGAL::Parallel_if_available_tag>(
@@ -178,6 +178,11 @@ Shell::centroid() {
   return CGAL::centroid(_samples_surface.begin(), _samples_surface.end());
 }
 
+double
+Shell::circumference() {
+  double re = 4 * 3.14159 * pow(3 * _volume / (4 * 3.14159), 2.0/3.0) / _area;
+  return 11.1;
+}
 
 double
 Shell::cohesion() {
@@ -214,8 +219,22 @@ Shell::cubeness() {
 }
 
 double
+Shell::cuboidindex() {
+  auto o = this->get_oobb();
+  double voloobb = oobb_volume(o);
+  double areaoobb = oobb_area(o);
+  return pow(_volume / voloobb, 2.0/3.0) * areaoobb / _area;
+}
+
+// double
+// Shell::depth() {
+//   return 77.7;
+// }
+
+
+double
 Shell::dispersion() {
-  double re = 1 - (this->mu_surface_sphere() / this->mu_surface_centroid());
+  double re = 1 - (this->avg_dist_samples_surface_radius_sphere() / this->avg_dist_samples_surface_centroid());
   return re;
 }
 
@@ -227,8 +246,21 @@ Shell::fractality() {
 }
 
 double
+Shell::girth() {
+  double re = this->largest_sphere_inside_mesh() / pow(3 * _volume / 4 / 3.14159, 1.0/3.0);
+  return re;
+}
+
+
+double
 Shell::hemisphericality() {
   return ( (3 * sqrt(2 * 3.14159) * _volume) / pow(_area, 1.5) );
+}
+
+double
+Shell::proximity() {
+  double re = 0.75 * pow(3 * _volume / 4 / 3.14159, 1.0/3.0) / this->avg_dist_samples_volume_centroid();
+  return re;
 }
 
 double
@@ -248,11 +280,17 @@ Shell::rectangularity() {
 
 double
 Shell::roughness() {
-  return (pow(this->mu_surface_centroid(), 3.0) * 48.735 / (_volume + pow(_area, 1.5)));
+  return (pow(this->avg_dist_samples_surface_centroid(), 3.0) * 48.735 / (_volume + pow(_area, 1.5)));
 }
 
 double
-Shell::mu_surface_sphere() {
+Shell::spin() {
+  double re = 0.6 * pow(3 * _volume / 4 / 3.14159, 2.0/3.0) / this->avg_sq_dist_samples_volume_centroid();
+  return re;
+}
+
+double
+Shell::avg_dist_samples_surface_radius_sphere() {
   Point3 c = CGAL::centroid(_samples_surface.begin(), _samples_surface.end());
   double r = get_sphere_radius_from_volume(_volume);
   double distance = 0.0;
@@ -266,13 +304,37 @@ Shell::mu_surface_sphere() {
 
 
 double
-Shell::mu_surface_centroid() {
+Shell::avg_dist_samples_surface_centroid() {
   Point3 c = CGAL::centroid(_samples_surface.begin(), _samples_surface.end());
   double distance = 0.0;
   int total = 0;     
   for (auto& s : _samples_surface) {
     total += 1;
     distance += sqrt(CGAL::squared_distance(c, s));
+  }
+  return (distance / total);
+}
+
+double
+Shell::avg_dist_samples_volume_centroid() {
+  Point3 c = CGAL::centroid(_samples_surface.begin(), _samples_surface.end());
+  double distance = 0.0;
+  int total = 0;     
+  for (auto& s : _samples_volume) {
+    total += 1;
+    distance += sqrt(CGAL::squared_distance(c, s));
+  }
+  return (distance / total);
+}
+
+double
+Shell::avg_sq_dist_samples_volume_centroid() {
+  Point3 c = CGAL::centroid(_samples_surface.begin(), _samples_surface.end());
+  double distance = 0.0;
+  int total = 0;     
+  for (auto& s : _samples_volume) {
+    total += 1;
+    distance += CGAL::squared_distance(c, s);
   }
   return (distance / total);
 }
