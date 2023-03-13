@@ -171,6 +171,7 @@ void calculate_metrics(std::vector<Point3>& lspts, const json &j) {
       if (trs.empty() == false) {
         std::cout << co.key() << "[" << g["lod"].get<std::string>() << "]" << "," << std::endl;   
         Shell s = Shell(trs, lspts);
+        std::cout << std::setprecision(3) << std::fixed;
 
         double area = area_shell(trs, lspts);
         double volume = volume_shell(trs, lspts);
@@ -178,9 +179,9 @@ void calculate_metrics(std::vector<Point3>& lspts, const json &j) {
         double area1 = s.area();
         double volume1 = s.volume();
 
-        double d = s.distance();
+        double d = s.largest_sphere_inside_mesh();
+        std::cout << "largest_sphere_inside_mesh: " << d << std::endl;
         
-        std::cout << std::setprecision(3) << std::fixed;
         // if ( CGAL::is_closed(s.get_mesh()) == false ) {
           std::cout << "area: " << area << " | " << area1 << std::endl;
           std::cout << "volume: " << volume << " | " << volume1 << std::endl;

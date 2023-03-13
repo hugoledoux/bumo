@@ -30,7 +30,7 @@ public:
   double                roughness();
   double                volume();
 
-  double                distance();
+  double                largest_sphere_inside_mesh();
 
   void                  write_off(std::string s);
 

@@ -40,18 +40,24 @@ Shell::Shell(std::vector<std::vector<int>> trs, std::vector<Point3> lspts) {
   CGAL::Polygon_mesh_processing::sample_triangle_soup(_lspts, 
                           _trs, 
                           std::back_inserter(_samples_surface), 
-                          CGAL::parameters::do_sample_vertices(true).
+                          CGAL::parameters::number_of_points_per_area_unit(2).
                           use_random_uniform_sampling(true)
   );
+  std::cout << "_samples_surface: " << _samples_surface.size() << std::endl;
+
   //-- samples_volume
   auto bbox = this->get_aabb();
   auto rand = CGAL::Random();
-  std::cout << "here" << std::endl;
-
-  CGAL::Side_of_triangle_mesh<Mesh, K> inside(_mesh_original);
-  std::cout << "here2" << std::endl;
+  Mesh* m;
+  if (CGAL::is_closed(_mesh_original) == true) {
+    m = &_mesh_original;
+  } else {
+    m = &_mesh_wrap;
+  }
+  CGAL::Side_of_triangle_mesh<Mesh, K> inside(*m);
   int n = 0;
-  while (n < 10) {
+  int total = int(_volume * 4.0); //-- 4pts/m^3
+  while (n < total) {
     double x = rand.uniform_real(bbox.xmin(), bbox.xmax());
     double y = rand.uniform_real(bbox.ymin(), bbox.ymax());
     double z = rand.uniform_real(bbox.zmin(), bbox.zmax());
@@ -61,26 +67,21 @@ Shell::Shell(std::vector<std::vector<int>> trs, std::vector<Point3> lspts) {
       n++;
     }
   }
-  for (auto& p : _samples_volume)
-    std::cout << p << std::endl;
-
+  // std::cout << "_samples_volume.size() " << _samples_volume.size() << std::endl;
+  // for (auto& p : _samples_volume)
+    // std::cout << p << std::endl;
 }
 
 
 
 
 
-double Shell::distance() {
+double Shell::largest_sphere_inside_mesh() {
   // https://github.com/CGAL/cgal/blob/master/Polygon_mesh_processing/test/Polygon_mesh_processing/test_pmp_distance.cpp
-  std::vector<Point3> pts;
-  // pts.push_back(Point3(107.0, 388.0, 15.0));
-  pts.push_back(Point3(43.0, 364.0, 16.3));
-  pts.push_back(Point3(81.0, 413.0, 17.0));
   double re = CGAL::Polygon_mesh_processing::max_distance_to_triangle_mesh<CGAL::Parallel_if_available_tag>(
-    pts, 
+    _samples_volume, 
     _mesh_original);
-  std::cout << "re distance: " << re << std::endl;
-  return 77.0;
+  return re;
 
 }
 
