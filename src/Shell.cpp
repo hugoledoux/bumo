@@ -11,9 +11,45 @@ Shell::Shell(std::vector<std::vector<int>> trs, std::vector<Point3> lspts) {
   Mesh mesh;
   CGAL::Polygon_mesh_processing::polygon_soup_to_polygon_mesh(_lspts, _trs, mesh);   
   _mesh_original = mesh;
+  if (CGAL::is_closed(_mesh_original) == false) {
+    //-- attempt to fill holes
+    std::vector<halfedge_descriptor> border_cycles;
+    //-- collect one halfedge per boundary cycle
+    CGAL::Polygon_mesh_processing::extract_boundary_cycles(_mesh_original, std::back_inserter(border_cycles));
+    for(halfedge_descriptor h : border_cycles)
+    {
+      std::vector<face_descriptor>  patch_facets;
+      std::vector<vertex_descriptor> patch_vertices;
+      bool success = std::get<0>(
+        CGAL::Polygon_mesh_processing::triangulate_refine_and_fair_hole(_mesh_original,
+                                                                        h,
+                                                                        std::back_inserter(patch_facets),
+                                                                        std::back_inserter(patch_vertices)));
+    }
+  }
+  //-- if still not closed: create the alph-wrap mesh to compute in/out
   _mesh_wrap = Mesh();
+  if (CGAL::is_closed(_mesh_original) == false) {
+    CGAL::alpha_wrap_3(_mesh_original, 1.3, 0.3, _mesh_wrap); //-- values of Ivan
+  }
   _mesh = &_mesh_original;
+  //-- area+volume
+  _area = CGAL::Polygon_mesh_processing::area(_mesh_original);
+  _volume = CGAL::Polygon_mesh_processing::volume(_mesh_original);
+  //-- samples_surfaces
+  CGAL::Polygon_mesh_processing::sample_triangle_soup(_lspts, 
+                          _trs, 
+                          std::back_inserter(_samples_surface), 
+                          CGAL::parameters::do_sample_vertices(true).
+                          use_random_uniform_sampling(true)
+  );
+  //-- samples_volume
+  _samples_volume.push_back(Point3(43.0, 364.0, 16.3));
+  _samples_volume.push_back(Point3(81.0, 413.0, 17.0));
 }
+
+
+
 
 
 double Shell::distance() {
@@ -42,7 +78,6 @@ Shell::compute_wrap_mesh() {
   // const double alpha = diag_length / relative_alpha;
   // const double offset = diag_length / relative_offset;
   // CGAL::alpha_wrap_3(_mesh_original, alpha, offset, _mesh_wrap);
-
   CGAL::alpha_wrap_3(_mesh_original, 1.3, 0.3, _mesh_wrap); //-- values of Ivan
 }
 
@@ -111,36 +146,29 @@ Shell::is_closed() {
 
 double 
 Shell::volume() {
-  return CGAL::Polygon_mesh_processing::volume(*_mesh);
+  return _volume;
 }
 
 double 
 Shell::area() {
-  return CGAL::Polygon_mesh_processing::area(*_mesh);
+  return _area;
 }
 
 Point3
 Shell::centroid() {
-  std::vector<Point3> samples;
-  CGAL::Polygon_mesh_processing::sample_triangle_soup(_lspts, 
-                          _trs, 
-                          std::back_inserter(samples), 
-                          CGAL::parameters::do_sample_vertices(true).
-                          use_random_uniform_sampling(true)
-  );
-  return CGAL::centroid(samples.begin(), samples.end());
+  return CGAL::centroid(_samples_surface.begin(), _samples_surface.end());
 }
 
 double
 Shell::convexity() {
   Polyhedron p = this->get_convex_hull();
   double vol = CGAL::Polygon_mesh_processing::volume(p);
-  return (this->volume() / vol);
+  return (_volume / vol);
 }
 
 double
 Shell::cubeness() {
-  return ( 6 * pow(this->volume(), 2.0/3.0) / this->area() );
+  return ( 6 * pow(_volume, 2.0/3.0) / _area );
 }
 
 double
@@ -152,20 +180,20 @@ Shell::dispersion() {
 
 double
 Shell::fractality() {
-  double re = 1 - (std::log(this->volume()) / 1.5 / std::log(this->area()));
+  double re = 1 - (std::log(_volume) / 1.5 / std::log(_area));
   return re;
 }
 
 double
 Shell::hemisphericality() {
-  return ( (3 * sqrt(2 * 3.14159) * this->volume()) / pow(this->area(), 1.5) );
+  return ( (3 * sqrt(2 * 3.14159) * _volume) / pow(_area, 1.5) );
 }
 
 double
 Shell::range() {
   //-- get smallest enclosing spheres
   Min_sphere ms(_lspts.begin(), _lspts.end());
-  double re = pow(3 * this->volume() / (4 * 3.14159), 1.0/3.0) / ms.radius();
+  double re = pow(3 * _volume / (4 * 3.14159), 1.0/3.0) / ms.radius();
   return re;
 }
 
@@ -173,28 +201,21 @@ double
 Shell::rectangularity() {
   auto o = this->get_oobb();
   double voloobb = oobb_volume(o);
-  return (this->volume() / voloobb);
+  return (_volume / voloobb);
 }
 
 double
 Shell::roughness() {
-  return (pow(this->mu_surface_centroid(), 3.0) * 48.735 / (this->volume() + pow(this->area(), 1.5)));
+  return (pow(this->mu_surface_centroid(), 3.0) * 48.735 / (_volume + pow(_area, 1.5)));
 }
 
 double
 Shell::mu_surface_sphere() {
-  std::vector<Point3> samples;
-  CGAL::Polygon_mesh_processing::sample_triangle_soup(_lspts, 
-                          _trs, 
-                          std::back_inserter(samples), 
-                          CGAL::parameters::do_sample_vertices(true).
-                          use_random_uniform_sampling(true)
-                          );
-  Point3 c = CGAL::centroid(samples.begin(), samples.end());
-  double r = get_sphere_radius_from_volume(this->volume());
+  Point3 c = CGAL::centroid(_samples_surface.begin(), _samples_surface.end());
+  double r = get_sphere_radius_from_volume(_volume);
   double distance = 0.0;
   int total = 0;   
-  for (auto& s : samples) {
+  for (auto& s : _samples_surface) {
     total += 1;
     distance += abs(sqrt(CGAL::squared_distance(c, s)) - r);
   }
@@ -204,17 +225,10 @@ Shell::mu_surface_sphere() {
 
 double
 Shell::mu_surface_centroid() {
-  std::vector<Point3> samples;
-  CGAL::Polygon_mesh_processing::sample_triangle_soup(_lspts, 
-                          _trs, 
-                          std::back_inserter(samples), 
-                          CGAL::parameters::do_sample_vertices(true).
-                          use_random_uniform_sampling(true)
-                          );
-  Point3 c = CGAL::centroid(samples.begin(), samples.end());
+  Point3 c = CGAL::centroid(_samples_surface.begin(), _samples_surface.end());
   double distance = 0.0;
   int total = 0;     
-  for (auto& s : samples) {
+  for (auto& s : _samples_surface) {
     total += 1;
     distance += sqrt(CGAL::squared_distance(c, s));
   }

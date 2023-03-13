@@ -37,9 +37,15 @@ public:
 private:
   std::vector<Point3>           _lspts;
   std::vector<std::vector<int>> _trs;
+  
   Mesh                          _mesh_original;
   Mesh                          _mesh_wrap;
   Mesh*                         _mesh;
+
+  double                        _area;
+  double                        _volume;
+  std::vector<Point3>           _samples_surface;
+  std::vector<Point3>           _samples_volume;
 
   double                mu_surface_centroid();
   double                mu_surface_sphere();
