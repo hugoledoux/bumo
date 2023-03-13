@@ -3,6 +3,7 @@
 
 // CGAL kernel
 #include <CGAL/Exact_predicates_inexact_constructions_kernel.h>
+#include <CGAL/Random.h>
 #include <CGAL/optimal_bounding_box.h>
 #include <CGAL/Polyhedron_3.h>
 #include <CGAL/Polygon_2.h>
@@ -10,6 +11,7 @@
 #include <CGAL/Polyhedron_3.h>
 #include <CGAL/convex_hull_3.h>
 #include <CGAL/squared_distance_3.h> 
+#include <CGAL/Side_of_triangle_mesh.h>
 
 #include <CGAL/Constrained_Delaunay_triangulation_2.h>
 #include <CGAL/linear_least_squares_fitting_3.h>

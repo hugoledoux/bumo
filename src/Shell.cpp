@@ -44,8 +44,26 @@ Shell::Shell(std::vector<std::vector<int>> trs, std::vector<Point3> lspts) {
                           use_random_uniform_sampling(true)
   );
   //-- samples_volume
-  _samples_volume.push_back(Point3(43.0, 364.0, 16.3));
-  _samples_volume.push_back(Point3(81.0, 413.0, 17.0));
+  auto bbox = this->get_aabb();
+  auto rand = CGAL::Random();
+  std::cout << "here" << std::endl;
+
+  CGAL::Side_of_triangle_mesh<Mesh, K> inside(_mesh_original);
+  std::cout << "here2" << std::endl;
+  int n = 0;
+  while (n < 10) {
+    double x = rand.uniform_real(bbox.xmin(), bbox.xmax());
+    double y = rand.uniform_real(bbox.ymin(), bbox.ymax());
+    double z = rand.uniform_real(bbox.zmin(), bbox.zmax());
+    Point3 p(x, y, z);
+    if (inside(p) == CGAL::ON_BOUNDED_SIDE) { 
+      _samples_volume.push_back(p);
+      n++;
+    }
+  }
+  for (auto& p : _samples_volume)
+    std::cout << p << std::endl;
+
 }
 
 
