@@ -178,6 +178,29 @@ Shell::centroid() {
   return CGAL::centroid(_samples_surface.begin(), _samples_surface.end());
 }
 
+
+double
+Shell::cohesion() {
+  // Polyhedron p = this->get_convex_hull();
+  // double vol = CGAL::Polygon_mesh_processing::volume(p);
+  // return (_volume / vol);
+  double totaldistance = 0.0;
+  for (auto i = 0; i < _samples_volume.size(); i+=10) {
+    for (auto j = 0; j < _samples_volume.size(); j+=10) {
+      totaldistance += sqrt(CGAL::squared_distance(_samples_volume[i], _samples_volume[j]));
+    }
+  }
+
+  // for (auto& g1: _samples_volume) {
+  //   for (auto& g2: _samples_volume) {
+  //     totaldistance += sqrt(CGAL::squared_distance(g1, g2));
+  //   }
+  // }
+  double re = 36 / 35 * pow(3 * _volume / (4 * 3.14159), 1.0/3.0) / (1 / pow(_samples_volume.size()/10.0, 2.0) * totaldistance);
+  return re;
+}
+
+
 double
 Shell::convexity() {
   Polyhedron p = this->get_convex_hull();

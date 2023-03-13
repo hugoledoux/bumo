@@ -20,6 +20,7 @@ public:
 
   double                area();
   Point3                centroid();
+  double                cohesion();
   double                convexity();
   double                cubeness();
   double                dispersion();
@@ -30,7 +31,6 @@ public:
   double                roughness();
   double                volume();
 
-  double                largest_sphere_inside_mesh();
 
   void                  write_off(std::string s);
 
@@ -47,6 +47,7 @@ private:
   std::vector<Point3>           _samples_surface;
   std::vector<Point3>           _samples_volume;
 
+  double                largest_sphere_inside_mesh();
   double                mu_surface_centroid();
   double                mu_surface_sphere();
 };
