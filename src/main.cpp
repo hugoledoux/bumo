@@ -16,19 +16,25 @@ using json = nlohmann::json;
 void    list_all_vertices(json& j);
 std::vector<Point3> get_coordinates(const json& j, bool translate = true);
 void    calculate_metrics(std::vector<Point3>& lspts, const json &j);
-void test1();
 
 std::set<std::string> metrics = {
-  "area", 
-  "cubeness", 
+  "area",
+  "circumference",
+  "cohesion",
+  "convexity",
+  "cubeness",
+  "cuboidindex",
+  // "depth",
+  "dispersion",
+  "fractality",
+  "girth",
   "hemisphericality",
+  "proximity",
+  "range",
   "rectangularity",
   "roughness",
-  "total_vertices",
-  "total_surfaces",
-  "volume", 
-  "volume_aabb", 
-  "volume_oobb" 
+  "spin",
+  "volume"
 };
 
 int main(int argc, const char * argv[]) {
@@ -101,10 +107,6 @@ int main(int argc, const char * argv[]) {
     return 1;
   } 
 
-
-
-  // std::cout << "Processing: " << ifile << std::endl;
-
   std::ifstream input(ifile);
   json j;
   input >> j;
@@ -113,24 +115,8 @@ int main(int argc, const char * argv[]) {
   std::vector<Point3> lspts = get_coordinates(j, false);
 
   calculate_metrics(lspts, j);
-  // test1();
 
   return 0;
-}
-
-
-void test1() {
-  Mesh mesh;
-  // CGAL::IO::read_polygon_mesh("/Users/hugo/temp/NL.IMBAG.Pand.0503100000031316-0.off", mesh);
-  // CGAL::IO::read_polygon_mesh("/Users/hugo/temp/NL.IMBAG.Pand.0503100000032914-0_goodvol.off", mesh);
-  CGAL::IO::read_polygon_mesh("/Users/hugo/temp/NL.IMBAG.Pand.0503100000032914-0_badvol.off", mesh);
-  std::vector<Point3> lspts;
-  std::vector<std::vector<int>> trs;
-  CGAL::Polygon_mesh_processing::polygon_mesh_to_polygon_soup(mesh, lspts, trs); 
-  std::cout << lspts.size() << "  " << trs.size() << std::endl;
-  double v = volume_shell(trs, lspts);
-  std::cout << "vol: " << v << std::endl;
-
 }
 
 
@@ -147,7 +133,6 @@ void calculate_metrics(std::vector<Point3>& lspts, const json &j) {
   for (auto& co : j["CityObjects"].items()) {
     for (auto& g : co.value()["geometry"]) {
       std::vector<std::vector<int>> trs;
-      // std::vector<Point3> shellpts;
       for (int i = 0; i < g["boundaries"].size(); i++) {
         for (int j = 0; j < g["boundaries"][i].size(); j++) {
           std::vector<std::vector<int>> gb = g["boundaries"][i][j];
@@ -156,83 +141,33 @@ void calculate_metrics(std::vector<Point3>& lspts, const json &j) {
           for (auto& each : tris) {
             trs.push_back(each);
           }
-          // //-- save the unique points
-          // std::set<size_t> uids;
-          // for (auto& ring : gb) {
-          //   for (auto& pi: ring) {
-          //     uids.insert(pi);
-          //   }
-          // }
-          // for (auto& each : uids) {
-          //   shellpts.push_back(lspts[each]);
-          // }
         }
       }
       if (trs.empty() == false) {
-        std::cout << co.key() << "[" << g["lod"].get<std::string>() << "]" << "," << std::endl;   
-        Shell s = Shell(trs, lspts);
         std::cout << std::setprecision(3) << std::fixed;
-
-        double area = area_shell(trs, lspts);
-        double volume = volume_shell(trs, lspts);
-
-        double area1 = s.area();
-        double volume1 = s.volume();
-
-        // double d = s.largest_sphere_inside_mesh();
-        // std::cout << "largest_sphere_inside_mesh: " << d << std::endl;
-
-        // double cohesion = s.cohesion();
-        // std::cout << "cohesion: " << cohesion << std::endl;
-
-        // double proximity = s.proximity();
-        // std::cout << "proximity: " << proximity << std::endl;
-
-        double depth = s.depth();
-        std::cout << "depth: " << depth << std::endl;
-        
-        // if ( CGAL::is_closed(s.get_mesh()) == false ) {
-          std::cout << "area: " << area << " | " << area1 << std::endl;
-          std::cout << "volume: " << volume << " | " << volume1 << std::endl;
-          std::cout << "rectangularity: " << s.rectangularity() << std::endl;
-        // }
-
-        std::cout << "range: " << s.range() << std::endl;
-
-        // s.compute_wrap_mesh();
-        // s.use_wrap_mesh(true);
-        // std::cout << "area wrap: " << s.area()<< std::endl;
-        // std::cout << "volume wrap: " << s.volume() << std::endl;
-
-        // s.fill_holes();
-        // std::cout << "is_closed: " << s.is_closed() << std::endl;
-
-        // std::cout << "area: " << s.area()<< std::endl;
-        // std::cout << "volume: " << s.volume() << std::endl;
-        // std::cout << "rectangularity: " << s.rectangularity() << std::endl;
-
-        std::string output_name = "/Users/hugo/temp/" + co.key() + ".off";
-        // std::string output_name = "/Users/hugo/temp/" + co.key() + ".wrap.off";
-        s.write_off(output_name);
-
-        // double vol_oobb = volume_oobb(shellpts);
-
-        // std::cout << std::setprecision(2) << std::fixed;
-        // for (auto& metric : metrics) {   
-        //   if (metric == "volume") {
-        //     std::cout << volume << ",";
-        //   } else if (metric == "area") {
-        //     std::cout << area << ",";
-        //   } else if (metric == "roughness") {
-        //     double mu1 = mu(shellpts, trs, lspts);
-        //     double roughness = pow(mu1, 3.0) * 48.735 / (volume + pow(area, 1.5));
-        //     std::cout << roughness << ",";
-        //   }
-
-        // // std::cout << (vol / voloobb) << " ";
-              
-        // }
-        // std::cout << std::endl;
+        Shell s = Shell(trs, lspts);
+        std::cout << co.key() << "[" << g["lod"].get<std::string>() << "]" << "," << std::endl;   
+        std::cout << s.area() << "," << std::endl;
+        std::cout << s.circumference() << "," << std::endl;
+        std::cout << s.cohesion() << "," << std::endl;
+        std::cout << s.convexity() << "," << std::endl;
+        std::cout << s.cubeness() << "," << std::endl;
+        std::cout << s.cuboidindex() << "," << std::endl;
+// VERY SLOW        // std::cout << s.depth() << "," << std::endl;  
+        std::cout << s.dispersion() << "," << std::endl;
+        std::cout << s.fractality() << "," << std::endl;
+        std::cout << s.girth() << "," << std::endl;
+        std::cout << s.hemisphericality() << "," << std::endl;
+        std::cout << s.proximity() << "," << std::endl;
+        std::cout << s.range() << "," << std::endl;
+        std::cout << s.rectangularity() << "," << std::endl;
+        std::cout << s.roughness() << "," << std::endl;
+        std::cout << s.spin() << "," << std::endl;
+        std::cout << s.volume() << "," << std::endl;
+        std::cout << std::endl;     
+        // std::string output_name = "/Users/hugo/temp/" + co.key() + ".off";
+        // // std::string output_name = "/Users/hugo/temp/" + co.key() + ".wrap.off";
+        // s.write_off(output_name);
       }
     }
   }

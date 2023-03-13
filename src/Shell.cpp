@@ -43,7 +43,7 @@ Shell::Shell(std::vector<std::vector<int>> trs, std::vector<Point3> lspts) {
                           CGAL::parameters::number_of_points_per_area_unit(2).
                           use_random_uniform_sampling(true)
   );
-  std::cout << "_samples_surface: " << _samples_surface.size() << std::endl;
+  // std::cout << "_samples_surface: " << _samples_surface.size() << std::endl;
 
   //-- samples_volume
   auto bbox = this->get_aabb();
@@ -98,30 +98,6 @@ Shell::compute_wrap_mesh() {
   // const double offset = diag_length / relative_offset;
   // CGAL::alpha_wrap_3(_mesh_original, alpha, offset, _mesh_wrap);
   CGAL::alpha_wrap_3(_mesh_original, 1.3, 0.3, _mesh_wrap); //-- values of Ivan
-}
-
-void
-Shell::fill_holes() {
-  std::vector<halfedge_descriptor> border_cycles;
-  //-- collect one halfedge per boundary cycle
-  CGAL::Polygon_mesh_processing::extract_boundary_cycles(*_mesh, std::back_inserter(border_cycles));
-  unsigned int nb_holes = 0;
-  for(halfedge_descriptor h : border_cycles)
-  {
-    std::vector<face_descriptor>  patch_facets;
-    std::vector<vertex_descriptor> patch_vertices;
-    bool success = std::get<0>(
-      CGAL::Polygon_mesh_processing::triangulate_refine_and_fair_hole(*_mesh,
-                                                                      h,
-                                                                      std::back_inserter(patch_facets),
-                                                                      std::back_inserter(patch_vertices)));
-    std::cout << "* Number of facets in constructed patch: " << patch_facets.size() << std::endl;
-    std::cout << "  Number of vertices in constructed patch: " << patch_vertices.size() << std::endl;
-    std::cout << "  Is fairing successful: " << success << std::endl;
-    ++nb_holes;
-  }
-  std::cout << std::endl;
-  std::cout << nb_holes << " holes have been filled" << std::endl;
 }
 
 
@@ -181,7 +157,7 @@ Shell::centroid() {
 double
 Shell::circumference() {
   double re = 4 * 3.14159 * pow(3 * _volume / (4 * 3.14159), 2.0/3.0) / _area;
-  return 11.1;
+  return re;
 }
 
 double

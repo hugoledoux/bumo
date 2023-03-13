@@ -9,8 +9,6 @@ public:
   void                  compute_wrap_mesh();
   void                  use_wrap_mesh(bool b);
 
-  void                  fill_holes();
-
   Mesh*                 get_mesh();
   Polyhedron            get_convex_hull();
   std::array<Point3,8>  get_oobb();
@@ -19,7 +17,6 @@ public:
   bool                  is_closed();
 
   double                area();
-  Point3                centroid();
   double                circumference();
   double                cohesion();
   double                convexity();
@@ -58,6 +55,7 @@ private:
   double                avg_dist_samples_volume_centroid();
   double                avg_dist_samples_volume_surface();
   double                avg_sq_dist_samples_volume_centroid();
+  Point3                centroid();
   double                largest_sphere_inside_mesh();
   double                avg_dist_samples_surface_radius_sphere();
 };
