@@ -40,7 +40,6 @@ std::set<std::string> metrics = {
 int main(int argc, const char * argv[]) {
   std::string ifile; 
   bool bTranslate = false;
-  bool bAutorepair = false;
   bool bVerbose = false;
 
   try {
@@ -50,7 +49,6 @@ int main(int argc, const char * argv[]) {
       ("help", "View all options")
       ("metrics", po::bool_switch(), "List the metrics calculated")
       ("translate", po::bool_switch(), "Use transform/translate (default=false)")
-      ("autorepair", po::bool_switch(), "Try to autorepair (default=false)")
       ("verbose", po::bool_switch(), "Verbose output")
       ;
     po::options_description pohidden("Hidden options");
@@ -95,9 +93,6 @@ int main(int argc, const char * argv[]) {
     if (vm["translate"].as<bool>() == true) {
       bTranslate = true;
     }
-    if (vm["autorepair"].as<bool>() == true) {
-      bAutorepair = true;
-    }
     if (vm["verbose"].as<bool>() == true) {
       bVerbose = true;
     }
@@ -112,7 +107,7 @@ int main(int argc, const char * argv[]) {
   input >> j;
   input.close();
 
-  std::vector<Point3> lspts = get_coordinates(j, false);
+  std::vector<Point3> lspts = get_coordinates(j, bTranslate);
 
   calculate_metrics(lspts, j);
 
@@ -149,27 +144,28 @@ void calculate_metrics(std::vector<Point3>& lspts, const json &j) {
       if (trs.empty() == false) {
         std::cout << std::setprecision(3) << std::fixed;
         Shell s = Shell(trs, lspts);
-        std::cout << co.key() << "[" << g["lod"].get<std::string>() << "]" << "," << std::endl;   
-        std::cout << "area: " << s.area() << "," << std::endl;
-        std::cout << "circumference: " << s.circumference() << "," << std::endl;
-        std::cout << "cohesion: " << s.cohesion() << "," << std::endl;
-        std::cout << "convexity: " << s.convexity() << "," << std::endl;
-        std::cout << "cubeness: " << s.cubeness() << "," << std::endl;
-        std::cout << "cuboidindex: " << s.cuboidindex() << "," << std::endl;
-        std::cout << "depth: " << s.depth() << "," << std::endl;  
-        std::cout << "dispersion: " << s.dispersion() << "," << std::endl;
-        std::cout << "fractality: " << s.fractality() << "," << std::endl;
-        std::cout << "girth: " << s.girth() << "," << std::endl;
-        std::cout << "hemisphericality: " << s.hemisphericality() << "," << std::endl;
-        std::cout << "proximity: " << s.proximity() << "," << std::endl;
-        std::cout << "range: " << s.range() << "," << std::endl;
-        std::cout << "rectangularity: " << s.rectangularity() << "," << std::endl;
-        std::cout << "roughness: " << s.roughness() << "," << std::endl;
-        std::cout << "spin: " << s.spin() << "," << std::endl;
-        std::cout << "volume: " << s.volume() << "," << std::endl;
+        std::cout << co.key() << "[" << g["lod"].get<std::string>() << "]" << ",";   
+        std::cout << s.area() << ",";
+        std::cout << s.circumference() << ",";
+        std::cout << s.cohesion() << ",";
+        std::cout << s.convexity() << ",";
+        std::cout << s.cubeness() << ",";
+        std::cout << s.cuboidindex() << ",";
+        std::cout << s.depth() << ","; 
+        std::cout << s.dispersion() << ",";
+        std::cout << s.fractality() << ",";
+        std::cout << s.girth() << ",";
+        std::cout << s.hemisphericality() << ",";
+        std::cout << s.proximity() << ",";
+        std::cout << s.range() << ",";
+        std::cout << s.rectangularity() << ",";
+        std::cout << s.roughness() << ",";
+        std::cout << s.spin() << ",";
+        std::cout << s.volume() << ",";
         std::cout << std::endl;     
+        
+        //-- save to OBJ each geom
         // std::string output_name = "/Users/hugo/temp/" + co.key() + ".off";
-        // // std::string output_name = "/Users/hugo/temp/" + co.key() + ".wrap.off";
         // s.write_off(output_name);
       }
     }
