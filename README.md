@@ -1,14 +1,20 @@
 # bumo: BUilding MOrphology 
 
-CGAL-based reimplementation of https://github.com/tudelft3d/3d-building-metrics
+A C++ and purely CGAL-based reimplementation of the 3D building metrics described in the article:
 
-It should be faster and robuster (to faulty input) and easier to install.
+> A. Labetski, S. Vitalis, F. Biljecki, K. A. Ohori, and J. Stoter. 3D building metrics for urban morphology. International Journal of Geographical Information Science, pages 1–32, 2022. [[DOI]](https://doi.org/10.1080/13658816.2022.2103818)
 
-Most of the metrics described in the paper https://doi.org/10.7910/DVN/6QCRRF
+The original code is written in Python and relies mostly on [PyVista](https://pyvista.org): https://github.com/tudelft3d/3d-building-metrics
 
-- reads only CityJSON v1.1 files
-- only Solid are processed
-- made more-or-less for the <3dbag.nl>, but should work with any file
+
+This implementation should be faster, robuster to faulty input, and easier to install and to maintain.
+
+## Good to know
+
+  - reads only CityJSON v1.1 files
+  - only Solid are processed
+  - made more-or-less for the [3dbag.nl](https://3dbag.nl), but should work with any file
+
 
 ## Compilation
 
