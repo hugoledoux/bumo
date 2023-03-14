@@ -298,18 +298,30 @@ double
 Shell::avg_dist_samples_volume_surface() {
   double distance = 0.0;
   int count = 0;
-  // for (auto& s : _samples_volume) {
+  KDTree kdtree(_samples_surface.begin(), _samples_surface.end());
   for (auto i = 0; i < _samples_volume.size(); i+=10) {
-    std::vector<Point3> v;
-    v.push_back(_samples_volume[i]);
-    double d = CGAL::Polygon_mesh_processing::max_distance_to_triangle_mesh<CGAL::Parallel_if_available_tag>(
-                v, 
-                _mesh_original);
-    distance += d;
-    count += 1;
+    Neighbor_search search(kdtree, _samples_volume[i], 1);
+    distance += std::sqrt(search.begin()->second);
+    count++;
   }
   return (distance / count);
 }
+
+// Shell::avg_dist_samples_volume_surface() {
+//   double distance = 0.0;
+//   int count = 0;
+//   // for (auto& s : _samples_volume) {
+//   for (auto i = 0; i < _samples_volume.size(); i+=10) {
+//     std::vector<Point3> v;
+//     v.push_back(_samples_volume[i]);
+//     double d = CGAL::Polygon_mesh_processing::max_distance_to_triangle_mesh<CGAL::Parallel_if_available_tag>(
+//                 v, 
+//                 _mesh_original);
+//     distance += d;
+//     count += 1;
+//   }
+//   return (distance / count);
+// }
 
 double
 Shell::avg_sq_dist_samples_volume_centroid() {

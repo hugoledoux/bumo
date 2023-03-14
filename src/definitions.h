@@ -35,6 +35,8 @@
 #include <CGAL/Min_sphere_of_points_d_traits_3.h>
 #include <CGAL/Min_sphere_of_spheres_d.h>
 
+#include <CGAL/Orthogonal_k_neighbor_search.h>
+#include <CGAL/Search_traits_3.h>
 
 //-- for mark_domain()
 struct FaceInfo2
@@ -74,5 +76,9 @@ typedef boost::graph_traits<Mesh>::face_descriptor          face_descriptor;
 
 typedef CGAL::Min_sphere_of_points_d_traits_3<K,double>     MSPT;
 typedef CGAL::Min_sphere_of_spheres_d<MSPT>                 Min_sphere;
+
+typedef CGAL::Search_traits_3<K>                            KDTreeTraits;
+typedef CGAL::Orthogonal_k_neighbor_search<KDTreeTraits>    Neighbor_search;
+typedef Neighbor_search::Tree                               KDTree;
 
 #endif

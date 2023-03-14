@@ -24,7 +24,7 @@ std::set<std::string> metrics = {
   "convexity",
   "cubeness",
   "cuboidindex",
-  // "depth",
+  "depth",
   "dispersion",
   "fractality",
   "girth",
