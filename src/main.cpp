@@ -132,6 +132,9 @@ void calculate_metrics(std::vector<Point3>& lspts, const json &j) {
   //-- process each CityObjects (and each of its geoms)
   for (auto& co : j["CityObjects"].items()) {
     for (auto& g : co.value()["geometry"]) {
+      if (g["type"] != "Solid") {
+        continue;
+      }
       std::vector<std::vector<int>> trs;
       for (int i = 0; i < g["boundaries"].size(); i++) {
         for (int j = 0; j < g["boundaries"][i].size(); j++) {
