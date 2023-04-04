@@ -31,6 +31,11 @@ Shell::Shell(std::vector<std::vector<int>> trs, std::vector<Point3> lspts) {
   _mesh_wrap = Mesh();
   if (CGAL::is_closed(_mesh_original) == false) {
     CGAL::alpha_wrap_3(_mesh_original, 1.3, 0.3, _mesh_wrap); //-- values of Ivan
+    _mesh = &_mesh_wrap;
+    std::cout << "use_wrap_mesh!" << std::endl; // TODO: should we use wrap-alpha if invalid?
+
+  } else {
+    _mesh = &_mesh_original;
   }
   _mesh = &_mesh_original;
   //-- area+volume
