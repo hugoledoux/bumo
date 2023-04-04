@@ -41,10 +41,10 @@ Shell::Shell(std::vector<std::vector<int>> trs, std::vector<Point3> lspts) {
   } else {
     _mesh = &_mesh_original;
   }
-  _mesh = &_mesh_original;
+  
   //-- area+volume
   _area = CGAL::Polygon_mesh_processing::area(_mesh_original);
-  _volume = CGAL::Polygon_mesh_processing::volume(_mesh_original);
+  _volume = CGAL::Polygon_mesh_processing::volume(*_mesh);
   //-- samples_surfaces
   CGAL::Polygon_mesh_processing::sample_triangle_soup(_lspts, 
                           _trs, 
