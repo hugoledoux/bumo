@@ -27,6 +27,10 @@ Shell::Shell(std::vector<std::vector<int>> trs, std::vector<Point3> lspts) {
                                                                         std::back_inserter(patch_vertices)));
     }
   }
+  if( (CGAL::is_closed(_mesh_original) == true) && 
+      (CGAL::Polygon_mesh_processing::is_outward_oriented(_mesh_original) == false) ) {
+    CGAL::Polygon_mesh_processing::reverse_face_orientations(_mesh_original);
+  }
   //-- if still not closed: create the alph-wrap mesh to compute in/out
   _mesh_wrap = Mesh();
   if (CGAL::is_closed(_mesh_original) == false) {
