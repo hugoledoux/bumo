@@ -20,7 +20,7 @@ This implementation should be faster, robuster to faulty input, and easier to in
 
 You first need to install the following free libraries:
 
-  1. [CGAL v5.0+](http://www.cgal.org) 
+  1. [CGAL v5.5+](http://www.cgal.org) 
   1. [Eigen library](http://eigen.tuxfamily.org)
   1. [CMake](http://www.cmake.org)
 
